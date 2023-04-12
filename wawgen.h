@@ -26,7 +26,7 @@ struct header {
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "rb+"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.txt", "r"); //open in a RW binary mode
 
     header wawHdr; //create instance of waw header 
 
@@ -91,6 +91,7 @@ bool read_audioConfig(){ //extracts the data from prexisting audio config
 float sine_oscillator(audioData payload, float time){ //simple sine oscillator that can be called 
     float phase = 2*M_PI*payload.frequency*time;
     float sample = payload.amplitude*sin(phase);
+    printf("sinetest, phase: %f", phase);
     return sample;
 }
 

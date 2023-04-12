@@ -121,6 +121,7 @@ extern "C" {
     return 1;
   }
 
+
   bool sine_oscillator_test(){
     float sample;
     float time = 0;
@@ -129,16 +130,18 @@ extern "C" {
     temp.angle = 0;
     temp.frequency = 4;
     temp.bitDepth = 8;
-    temp.sampleRate = 10;
+    temp.sampleRate = 2;
     temp.duration = 4;
     float dur = temp.duration;
-    float tau = 1/temp.sampleRate; //this is the issue....
+    float SR = temp.sampleRate;
+    float tau = 1/SR;
+    //handling of sin is the issue
     printf("Starting sine wave generation of a wave with the following properties\n");
-    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i\n Tau: %f", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
+    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
 
     while(time <= dur){
       sample = sine_oscillator(temp, time);
-      //printf("Sample: %f, Time: %f\n", sample, time);
+      printf("Sample: %f, Time: %f\n", sample, time);
       time += tau;
     }
     return 1;
