@@ -90,6 +90,7 @@ extern "C" {
     return true;
   }
 
+  //example of opening files
   bool file_config(){
     FILE *fp; //pointer to a new file
     printf("attempting to open file\n");
@@ -113,6 +114,31 @@ extern "C" {
     return true;
   }
 
+  bool waw_testbench(){
+    audioData test;
+    FILE *fp = generate_waw_file(test);
+    fclose(fp);
+    printf("file should now be generated");
+  }
+
+  bool sine_oscillator_test(){
+    float sample;
+    float time = 0;
+    audioData temp;
+    temp.amplitude = 2;
+    temp.angle = 0;
+    temp.frequency = 4;
+    temp.bitDepth = 8;
+    temp.sampleRate = 10;
+    temp.duration = 4;
+    float dur = temp.duration;
+    while(time <= dur){
+      sample = sine_oscillator(temp, time);
+      printf("%f", sample);
+      time += tau;
+    }
+  }
+
   //UART communications //
   bool uart_comms(){
     //test code for uart
@@ -124,6 +150,8 @@ extern "C" {
     char play_buf[4] = {'p','l','a','y'};
     char file_buf[4] = {'f','i','l','e'};
     char help_buf[4] = {'h','e','l','p'};
+    //arbitrary test buffer
+    char test_buf[4] = {'t','e','s','t'};
     int ret;
     int i = 0;
 
@@ -152,6 +180,7 @@ extern "C" {
         if (buffer == '\r') {//If the character if a return the data will be send
           ret = write(fd, buffer_aux, sizeof(char) * i);//You can send in this case up to 256 character
           printf("\n");
+
           //help command
           if(stringCompare(help_buf, buffer_aux)){
             printf("\nWelcome to the shitty impulse response program\n");
@@ -163,24 +192,29 @@ extern "C" {
             printf("\ntype a command to proceed\n");
           }
 
-          //test of the string compare
-          if(stringCompare(file_buf, buffer_aux)){
-            printf("Starting file generator...\n\n");
+          //test of the waw generator
+          if(stringCompare(test_buf, buffer_aux)){
+            printf("Starting waw generator...\n\n");
+
             if(!file_config()){
               printf("error: failed to open file...\n\n");
             }
           }
 
+          //termination of the program
           if (stringCompare(quit_buf, buffer_aux)) {
             printf("quitting the program... \n");
             return false;
           }
+
+          //starting the play buffer
           if (stringCompare(play_buf, buffer_aux)) {
             printf("Launching Aduio Player... \n");
             if(!audio_Player_Call()){
               printf("audio player failed\n\n");
             }
           }
+
           if (ret > 0) {
             i = 0;
           }

@@ -16,10 +16,6 @@ struct audioData {
     float frequency, amplitude, angle;
 };
 
-struct test{
- int penis;
-};
-
 struct header {
     char riff[4], wave[4], fmt[4], data[4];
     uint32_t fileSize, fmtLen, sampleRate, byteRate, data_size;
@@ -29,7 +25,7 @@ struct header {
 
 FILE *generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("sine.waw", "rb+"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "rb+"); //open in a RW binary mode
 
     header wawHdr; //create instance of waw header 
 
@@ -89,15 +85,16 @@ float sine_oscillator(audioData payload, float time){ //simple sine oscillator t
 }
 
 bool wawgen(audioData payload){ //responsible for writing the waw file
-    FILE *fp = generate_waw_file(payload)
+    FILE *fp = generate_waw_file(payload);
 
     //initial values for the sine oscillator
     float time = 0;
     float tau = 1/payload.sampleRate;
-    while (time <= payload.duration){
-        float sample = sine_oscillator(time);
-        fprintf(fp, sample);
-        printf(sample);
+    int duration = payload.duration;
+    while (time <= duration){
+        float sample = sine_oscillator(payload, time);
+        fprintf(fp, "%f", sample);
+        printf("%f", sample);
         time += tau;
     }
     fclose(fp);
