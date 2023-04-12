@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <time.h>
@@ -23,7 +24,7 @@ struct header {
 };
 
 
-FILE *generate_waw_file(audioData payload){ //generates an empty waw file
+bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
     fp = fopen("/mnt/sd0/AUDIO/sine.waw", "rb+"); //open in a RW binary mode
 
@@ -68,7 +69,16 @@ FILE *generate_waw_file(audioData payload){ //generates an empty waw file
     
     //writing of the waw file
     fwrite(&wawHdr, sizeof(wawHdr),1,fp);
-    return fp;
+    fclose(fp);
+
+    //check if file exists
+    const char *file = "/mnt/sd0/AUDIO/sine.waw";
+    if(!access(file, F_OK)){
+        printf("file creation failed..\n");
+        return 0;
+    }
+    printf("file creation complete\n");
+    return 1;
 }
 
 /* not currently needed
@@ -85,7 +95,13 @@ float sine_oscillator(audioData payload, float time){ //simple sine oscillator t
 }
 
 bool wawgen(audioData payload){ //responsible for writing the waw file
-    FILE *fp = generate_waw_file(payload);
+    if(!generate_waw_file(payload)){
+        printf("waw generation failed.. \n");
+        return 0;
+    }
+    //open file
+    FILE *fp;
+    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "rb+"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;

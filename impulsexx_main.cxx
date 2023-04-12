@@ -75,9 +75,7 @@ extern "C" {
   }
 
 
-
   /* FUNCTIONS */
-
 
   // char to string conversion //
   bool stringCompare(char *a, char *b){
@@ -116,8 +114,9 @@ extern "C" {
 
   bool waw_testbench(){
     audioData test;
-    FILE *fp = generate_waw_file(test);
-    fclose(fp);
+    if(!generate_waw_file(test)){
+      return 0;
+    }
     printf("file should now be generated\nReturning to uart\n\n");
     return 1;
   }
@@ -133,9 +132,9 @@ extern "C" {
     temp.sampleRate = 10;
     temp.duration = 4;
     float dur = temp.duration;
-    float tau = 1/temp.sampleRate;
+    float tau = 1/temp.sampleRate; //this is the issue....
     printf("Starting sine wave generation of a wave with the following properties\n");
-    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i\n", temp.amplitude, temp.frequency, dur, temp.sampleRate);
+    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i\n Tau: %f", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
 
     while(time <= dur){
       sample = sine_oscillator(temp, time);
