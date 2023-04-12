@@ -118,7 +118,8 @@ extern "C" {
     audioData test;
     FILE *fp = generate_waw_file(test);
     fclose(fp);
-    printf("file should now be generated");
+    printf("file should now be generated\nReturning to uart\n\n");
+    return 1;
   }
 
   bool sine_oscillator_test(){
@@ -132,11 +133,16 @@ extern "C" {
     temp.sampleRate = 10;
     temp.duration = 4;
     float dur = temp.duration;
+    float tau = 1/temp.sampleRate;
+    printf("Starting sine wave generation of a wave with the following properties\n");
+    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i\n", temp.amplitude, temp.frequency, dur, temp.sampleRate);
+
     while(time <= dur){
       sample = sine_oscillator(temp, time);
-      printf("%f", sample);
+      //printf("Sample: %f, Time: %f\n", sample, time);
       time += tau;
     }
+    return 1;
   }
 
   //UART communications //
@@ -150,8 +156,10 @@ extern "C" {
     char play_buf[4] = {'p','l','a','y'};
     char file_buf[4] = {'f','i','l','e'};
     char help_buf[4] = {'h','e','l','p'};
-    //arbitrary test buffer
+    //test buffers
     char test_buf[4] = {'t','e','s','t'};
+    char tsin_buf[4] = {'t','s','i','n'};
+    char twaw_buf[4] = {'t','w','a','w'};
     int ret;
     int i = 0;
 
@@ -192,12 +200,24 @@ extern "C" {
             printf("\ntype a command to proceed\n");
           }
 
-          //test of the waw generator
+          //just a test of the uart
           if(stringCompare(test_buf, buffer_aux)){
-            printf("Starting waw generator...\n\n");
+            printf("well.. the uart works\n\n");
+          }
 
-            if(!file_config()){
-              printf("error: failed to open file...\n\n");
+          //call to test the sine wave generator
+          if(stringCompare(tsin_buf, buffer_aux)){
+            printf("Starting sine oscillator...\n\n");
+            if(!(sine_oscillator_test())){
+              printf("error: failed to run the sine oscillator test...\n\n");
+            }
+          }
+
+          //call to test the .waw file generator
+          if(stringCompare(twaw_buf, buffer_aux)){
+            printf("Starting waw generator...\n\n");
+            if(!waw_testbench()){
+              printf("error: failed to generate waw file...\n\n");
             }
           }
 
