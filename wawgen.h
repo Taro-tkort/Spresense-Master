@@ -73,14 +73,13 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
 
     //check if file exists
     const char *file = "/mnt/sd0/AUDIO/sine.waw";
-    if(!access(file, F_OK)){
-        printf("file creation failed..\n");
-        return 0;
+    if(access(file, F_OK)){
+        printf("file creation complete, file exists\n");
+        return 1;
     }
-    printf("file creation complete\n");
-    return 1;
+    printf("file creation failed..\n");
+    return 0;
 }
-
 /* not currently needed
 bool read_audioConfig(){ //extracts the data from prexisting audio config
     This function is intended to read a config file and extrac payload data from this file
@@ -94,7 +93,7 @@ float sine_oscillator(audioData payload, float time){ //simple sine oscillator t
     printf("sinetest, phase: %f", phase);
     return sample;
 }
-
+/*
 bool wawgen(audioData payload){ //responsible for writing the waw file
     if(!generate_waw_file(payload)){
         printf("waw generation failed.. \n");
@@ -117,3 +116,4 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     fclose(fp);
     return 1;
 }
+*/

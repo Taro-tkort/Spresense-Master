@@ -63,7 +63,6 @@
 extern "C" {
   //function prototypes
   bool uart_comms();
-  bool audio_Player_Call();
 
   int main(int argc, FAR char *argv[]){
     printf("Fucks sake, It works!!\n");
@@ -92,11 +91,13 @@ extern "C" {
   bool file_config(){
     FILE *fp; //pointer to a new file
     printf("attempting to open file\n");
-    fp = fopen("/mnt/sd0/AUDIO/file.txt", "r");
+    fp = fopen("/mnt/sd0/AUDIO/file1.txt", "r");
     if (fp == NULL){
       return 0;
     }
-    printf("attempting reading\n");
+    //fprintf(fp, "holy shit it works!!");
+
+    printf("attempting reading\n file content: ");
     int c;
     while(1) {
       c = fgetc(fp);
@@ -106,11 +107,12 @@ extern "C" {
       printf("%c", c);
    }
 
-    printf("closing file...\n\n");
+    printf("\nclosing file...\n\n");
     fclose(fp);
 
     return true;
   }
+
 
   bool waw_testbench(){
     audioData test;
@@ -128,10 +130,10 @@ extern "C" {
     audioData temp;
     temp.amplitude = 2;
     temp.angle = 0;
-    temp.frequency = 4;
+    temp.frequency = 1;
     temp.bitDepth = 8;
-    temp.sampleRate = 2;
-    temp.duration = 4;
+    temp.sampleRate = 50;
+    temp.duration = 1;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
@@ -207,6 +209,16 @@ extern "C" {
             printf("well.. the uart works\n\n");
           }
 
+          //testing the file creation...
+          if(stringCompare(file_buf, buffer_aux)){
+            printf("generating file test...\n");
+            if(!file_config()){
+              printf("file generation failed, exiting...\n\n");
+              return 0;
+            }
+            return 1;
+          }
+
           //call to test the sine wave generator
           if(stringCompare(tsin_buf, buffer_aux)){
             printf("Starting sine oscillator...\n\n");
@@ -244,313 +256,4 @@ extern "C" {
       }
     }
   }
-
-  bool audio_Player_Call(){
-    //TESTING ENV
-    //////////////////////////////////////////////////////////////////////
-    //initialize functions
-
-    /* Initialize clock mode.
-     * Clock mode indicates whether the internal processing rate of
-     * AudioSubSystem is Normal mode or Hi-Res mode. 
-     * The sampling rate of the playback file determines which mode
-     * will be taken. When playing a Hi-Res file,
-     * please set player mode to Hi-Res mode with config.
-     */
-
-    int clk_mode = -1;
-
-    printf("Start AudioPlayer with ObjIf example\n");
-
-    /* First, initialize the shared memory and memory utility used by AudioSubSystem. */
-
-    if (!app_init_libraries())
-      {
-        printf("Error: init_libraries() failure.\n");
-        return 1;
-      }
-
-    /* Next, Create the features used by AudioSubSystem. */
-
-    if (!app_create_audio_sub_system())
-      {
-        printf("Error: act_audiosubsystem() failure.\n");
-
-        /* Abnormal termination processing */
-
-        goto errout_act_audio_sub_system;
-      }
-
-    /* On and after this point, AudioSubSystem must be active.
-     * Register the callback function to be notified when a problem occurs.
-     */
-
-    /* Open directory of play contents. */
-
-    if (!app_open_contents_dir())
-      {
-        printf("Error: app_open_contents_dir() failure.\n");
-
-        /* Abnormal termination processing */
-
-        goto errout_open_contents_dir;
-      }
-
-    /* Initialize frequency lock parameter. */
-
-    app_init_freq_lock();
-
-    /* Lock cpu frequency to high. */
-
-    app_freq_lock();
-
-  #ifdef CONFIG_AUDIOUTILS_PLAYLIST
-    /* Open playlist. */
-
-    if (!app_open_playlist())
-      {
-        printf("Error: app_open_playlist() failure.\n");
-
-        /* Abnormal termination processing */
-
-        goto errout_open_playlist;
-      }
-  #endif
-
-    /* Initialize simple fifo. */
-
-    if (!app_init_simple_fifo())
-      {
-        printf("Error: app_init_simple_fifo() failure.\n");
-
-        /* Abnormal termination processing */
-
-        goto errout_init_simple_fifo;
-      }
-
-    /* Set the device to output the mixed audio. */
-
-    if (!app_activate_baseband())
-      {
-        printf("Error: app_activate_baseband() failure.\n");
-
-        /* Abnormal termination processing */
-
-        goto errout_init_output_select;
-      }
-
-    /* Set player operation mode. */
-
-    if (!app_activate_player_system())
-      {
-        printf("Error: app_activate_player_system() failure.\n");
-        return 1;
-      }
-
-    for (int i = 0; i < PLAYER_PLAY_FILE_NUM; i++)
-      {
-        if (!app_open_next_play_file())
-          {
-            /* Abnormal termination processing */
-
-            goto errout_open_next_play_file;
-          }
-
-        /* Get current clock mode.
-         * If the sampling rate is less than 48 kHz,
-         * it will be in Normal mode. Otherwise, Hi-Res mode is set.
-         */
-
-        int cur_clk_mode;
-        if (s_player_info.file.track.sampling_rate <= AS_SAMPLINGRATE_48000)
-          {
-            cur_clk_mode = AS_CLKMODE_NORMAL;
-          }
-        else
-          {
-            cur_clk_mode = AS_CLKMODE_HIRES;
-          }
-
-        /* If clockmode is Hi-Res and player mode is not Hi-Res,
-         * play the next file.
-         */
-
-  #ifdef CONFIG_EXAMPLES_AUDIO_PLAYER_OBJIF_MODE_NORMAL
-        if (cur_clk_mode == AS_CLKMODE_HIRES)
-          {
-            printf("Hi-Res file is not supported.\n"
-                   "Please change player mode to Hi-Res with config.\n");
-            app_close_play_file();
-
-            /* Play next file. */
-
-            continue;
-          }
-  #endif
-
-        /* If current clock mode is different from the previous clock mode,
-         * perform initial setting.
-         */
-
-        if (clk_mode != cur_clk_mode)
-          {
-            /* Update clock mode. */
-
-            clk_mode = cur_clk_mode;
-
-            /* Since the initial setting is required to be in the Ready state,
-             * if it is not in the Ready state, it is set to the Ready state.
-             */
-
-            if (board_external_amp_mute_control(true) != OK)
-              {
-                printf("Error: board_external_amp_mute_control(true) failuer.\n");
-
-                /* Abnormal termination processing */
-
-                goto errout_amp_mute_control;
-              }
-
-            if (!app_deactivate_baseband())
-              {
-                printf("Error: app_deactivate_baseband() failure.\n");
-
-              }
-
-            /* Set the clock mode of the output function. */
-
-            if (!app_set_clkmode(clk_mode))
-              {
-                printf("Error: app_set_clkmode() failure.\n");
-
-                /* Abnormal termination processing */
-
-                goto errout_set_clkmode;
-              }
-
-            if (!app_activate_baseband())
-              {
-                printf("Error: app_activate_baseband() failure.\n");
-
-                /* Abnormal termination processing */
-
-                goto errout_init_output_select;
-              }
-
-             /* Cancel output mute. */
-
-             app_set_volume(PLAYER_DEF_VOLUME);
-
-            if (board_external_amp_mute_control(false) != OK)
-              {
-                printf("Error: board_external_amp_mute_control(false) failuer.\n");
-
-                /* Abnormal termination processing */
-
-                goto errout_amp_mute_control;
-              }
-          }
-
-        /* Start player operation. */
-
-        if (!app_start())
-          {
-            printf("Error: app_start_player() failure.\n");
-
-            /* Abnormal termination processing */
-
-            goto errout_start;
-          }
-
-        /* Running... */
-
-        printf("Running time is %d sec\n", PLAYER_PLAY_TIME);
-
-        app_play_process(PLAYER_PLAY_TIME);
-
-        /* Stop player operation. */
-
-        if (!app_stop())
-          {
-            printf("Error: app_stop() failure.\n");
-            return 1;
-          }
-
-  #ifndef CONFIG_AUDIOUTILS_PLAYLIST
-        break;
-  #endif
-      }
-
-    /* Set output mute. */
-
-  errout_start:
-
-    if (board_external_amp_mute_control(true) != OK)
-      {
-        printf("Error: board_external_amp_mute_control(true) failuer.\n");
-        return 1;
-      }
-
-  #ifdef CONFIG_AUDIOUTILS_PLAYLIST
-  errout_open_playlist:
-  #endif
-  errout_amp_mute_control:
-  errout_init_simple_fifo:
-  errout_set_clkmode:
-  errout_init_output_select:
-  errout_open_next_play_file:
-
-    /* Unlock cpu frequency. */
-
-    app_freq_release();
-
-    /* Close playlist. */
-
-    if (!app_close_playlist())
-      {
-        printf("Error: app_close_playlist() failure.\n");
-        return 1;
-      }
-
-    if (!app_close_contents_dir())
-      {
-        printf("Error: app_close_contents_dir() failure.\n");
-        return 1;
-      }
-
-    /* Deactivate the features used by AudioSubSystem. */
-
-    if (!app_deact_player_system())
-      {
-        printf("Error: app_deact_player_system() failure.\n");
-        return 1;
-      }
-
-    /* Deactivate baseband */
-
-    if (!app_deactivate_baseband())
-      {
-        printf("Error: app_deactivate_baseband() failure.\n");
-  
-      }
-
-  errout_open_contents_dir:
-    app_deact_audio_sub_system();
-
-    /* finalize the shared memory and memory utility used by AudioSubSystem. */
-
-  errout_act_audio_sub_system:
-    if (!app_finalize_libraries())
-      {
-        printf("Error: finalize_libraries() failure.\n");
-        return 1;
-      }
-
-    printf("Exit AudioPlayer example\n\n");
-
-    return true;
-    //////////////////////////////////////////////////////////////////////////
-    // END OF TEST ENV
-
-    }// END OF AUDIO_CALL
 } //END OF C CODE
