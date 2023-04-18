@@ -59,6 +59,8 @@
 /////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 
+
+
 // The Native C part
 extern "C" {
   //function prototypes
@@ -91,12 +93,15 @@ extern "C" {
   bool file_config(){
     FILE *fp; //pointer to a new file
     printf("attempting to open file\n");
-    fp = fopen("/mnt/sd0/AUDIO/file1.txt", "r");
+    fp = fopen("/mnt/sd0/AUDIO/test2.txt", "ab");
     if (fp == NULL){
       return 0;
     }
-    //fprintf(fp, "holy shit it works!!");
+    fprintf(fp, "");
 
+    fclose(fp);
+
+    fp = fopen("/mnt/sd0/AUDIO/test2.txt", "rb");
     printf("attempting reading\n file content: ");
     int c;
     while(1) {
@@ -106,14 +111,13 @@ extern "C" {
       }
       printf("%c", c);
    }
-
     printf("\nclosing file...\n\n");
     fclose(fp);
 
-    return true;
+    return 1;
   }
 
-
+  //this only tests the generation of the waw file with the header
   bool waw_testbench(){
     audioData test;
     if(!generate_waw_file(test)){
@@ -123,7 +127,7 @@ extern "C" {
     return 1;
   }
 
-
+  //this only tests the sine oscillator
   bool sine_oscillator_test(){
     float sample;
     float time = 0;
@@ -137,7 +141,6 @@ extern "C" {
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
-    //handling of sin is the issue
     printf("Starting sine wave generation of a wave with the following properties\n");
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
 
@@ -147,6 +150,23 @@ extern "C" {
       time += tau;
     }
     return 1;
+  }
+
+  bool complete_waw_test(){
+    float sample;
+    float time = 0;
+    audioData temp;
+    temp.amplitude = 2;
+    temp.angle = 0;
+    temp.frequency = 1;
+    temp.bitDepth = 8;
+    temp.sampleRate = 50;
+    temp.duration = 1;
+    float dur = temp.duration;
+    float SR = temp.sampleRate;
+    float tau = 1/SR;
+    printf("Starting sine wave generation of a wave with the following properties\n");
+    printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
   }
 
   //UART communications //

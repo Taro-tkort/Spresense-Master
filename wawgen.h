@@ -18,15 +18,27 @@ struct audioData {
 };
 
 struct header {
-    char riff[4], wave[4], fmt[4], data[4];
+    char riff[4];
+    uint32_t fileSize;
+    char wave[4];
+    char fmt[4];
+    uint32_t fmtLen;
+    uint16_t format;
+    uint16_t chanCnt;
+    uint32_t sampleRate;
+    uint32_t byteRate;
+    uint16_t blkAlign;
+    uint16_t bitPerSample;
+    char data[4];
+
+     , 
     uint32_t fileSize, fmtLen, sampleRate, byteRate, data_size;
     uint16_t format, chanCnt, blkAlign, bitPerSample;
 };
 
-
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.txt", "r"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "wb"); //open in a RW binary mode
 
     header wawHdr; //create instance of waw header 
 
@@ -53,10 +65,10 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     wawHdr.wave[2] = 'V';
     wawHdr.wave[3] = 'E';
 
-    wawHdr.data[0] = 'D';
-    wawHdr.data[1] = 'A';
-    wawHdr.data[2] = 'T';
-    wawHdr.data[3] = 'A';
+    wawHdr.data[0] = 'd';
+    wawHdr.data[1] = 'a';
+    wawHdr.data[2] = 't';
+    wawHdr.data[3] = 'a';
 
     wawHdr.fileSize = 16;
     wawHdr.fmtLen = 1;
@@ -73,12 +85,12 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
 
     //check if file exists
     const char *file = "/mnt/sd0/AUDIO/sine.waw";
-    if(access(file, F_OK)){
-        printf("file creation complete, file exists\n");
-        return 1;
+    if(!access(file, F_OK)){
+        printf("file creation failed..\n");
+        return 0;
     }
-    printf("file creation failed..\n");
-    return 0;
+    printf("file creation complete, file exists\n");
+    return 1;
 }
 /* not currently needed
 bool read_audioConfig(){ //extracts the data from prexisting audio config
@@ -93,7 +105,7 @@ float sine_oscillator(audioData payload, float time){ //simple sine oscillator t
     printf("sinetest, phase: %f", phase);
     return sample;
 }
-/*
+
 bool wawgen(audioData payload){ //responsible for writing the waw file
     if(!generate_waw_file(payload)){
         printf("waw generation failed.. \n");
@@ -101,7 +113,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     }
     //open file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "rb+"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
@@ -116,4 +128,3 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     fclose(fp);
     return 1;
 }
-*/
