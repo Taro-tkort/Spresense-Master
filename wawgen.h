@@ -30,10 +30,7 @@ struct header {
     uint16_t blkAlign;
     uint16_t bitPerSample;
     char data[4];
-
-     , 
-    uint32_t fileSize, fmtLen, sampleRate, byteRate, data_size;
-    uint16_t format, chanCnt, blkAlign, bitPerSample;
+    uint32_t data_size;
 };
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
@@ -85,7 +82,7 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
 
     //check if file exists
     const char *file = "/mnt/sd0/AUDIO/sine.waw";
-    if(!access(file, F_OK)){
+    if(access(file, F_OK) != 0){
         printf("file creation failed..\n");
         return 0;
     }

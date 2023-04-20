@@ -97,7 +97,7 @@ extern "C" {
     if (fp == NULL){
       return 0;
     }
-    fprintf(fp, "");
+    fprintf(fp, "testing shmesting");
 
     fclose(fp);
 
@@ -113,7 +113,6 @@ extern "C" {
    }
     printf("\nclosing file...\n\n");
     fclose(fp);
-
     return 1;
   }
 
@@ -167,6 +166,13 @@ extern "C" {
     float tau = 1/SR;
     printf("Starting sine wave generation of a wave with the following properties\n");
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
+    printf("\nstarting header generation...\n");
+    if(!generate_waw_file(temp)){
+      printf("test failed returning to uart\n");
+      return 0;
+    }
+    printf("waw generation sucsessful, exiting..\n\n");
+    return 1;
   }
 
   //UART communications //
@@ -184,6 +190,7 @@ extern "C" {
     char test_buf[4] = {'t','e','s','t'};
     char tsin_buf[4] = {'t','s','i','n'};
     char twaw_buf[4] = {'t','w','a','w'};
+    char fulltest_buf [5] = {'b' ,'e' ,'n' ,'c' ,'h'};
     int ret;
     int i = 0;
 
@@ -236,7 +243,6 @@ extern "C" {
               printf("file generation failed, exiting...\n\n");
               return 0;
             }
-            return 1;
           }
 
           //call to test the sine wave generator
@@ -259,6 +265,12 @@ extern "C" {
           if (stringCompare(quit_buf, buffer_aux)) {
             printf("quitting the program... \n");
             return false;
+          }
+
+          if (stringCompare(fulltest_buf, buffer_aux)){
+            if(!complete_waw_test()){
+
+            }
           }
 
           //starting the play buffer
