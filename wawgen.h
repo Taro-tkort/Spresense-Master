@@ -35,7 +35,7 @@ struct header {
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "wb"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "wb"); //open in a RW binary mode
 
     header wawHdr; //create instance of waw header 
 
@@ -100,7 +100,7 @@ bool read_audioConfig(){ //extracts the data from prexisting audio config
 int16_t sine_oscillator(audioData payload, float time){ //simple sine oscillator that can be called 
     float phase = 2*M_PI*payload.frequency*time;
     float sample = payload.amplitude*sin(phase);
-    int16_t iSample = sample * (pow(2, payload.bitDepth - 1) - 1); 
+    int16_t iSample = sample * (pow(2, payload.bitDepth - 1) - 1); //convert to 16 bit
     return iSample;
 }
 
@@ -113,7 +113,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
 
     //open file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.waw", "ab"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
@@ -124,9 +124,13 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     while (time <= DUR){
         int16_t sample = sine_oscillator(payload, time);
         fprintf(fp, "%i", sample);
-        fprintf(fp, "%i", sample); //caused by channel cnt 2
+        //fprintf(fp, "%i", sample); //caused by channel cnt 2
         time += tau;
     }
+    
+//testspace////////////////////////////////////////
+
+//testspace////////////////////////////////////////
     fclose(fp);
     return 1;
 }

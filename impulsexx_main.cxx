@@ -170,9 +170,9 @@ extern "C" {
 
   bool complete_waw_test(){
     audioData temp;
-    temp.amplitude = 2;
+    temp.amplitude = 1;
     temp.angle = 0;
-    temp.frequency = 100;
+    temp.frequency = 440;
     temp.bitDepth = 16;
     temp.sampleRate = 48000;
     temp.duration = 3;
@@ -184,7 +184,7 @@ extern "C" {
     if(!wawgen(temp)){
       return 0;
     }
-    printf("file generation completed, exiting...\n\n");
+    printf("file generation completed, returning to uart...\n\n");
     return 1;
   }
 
