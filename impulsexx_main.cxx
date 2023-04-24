@@ -73,6 +73,7 @@ extern "C" {
       printf("\nuart init failed or uart was exited...\n quitting program\n");
       return 0;
     } //END OF MAIN
+    return 1;
   }
 
 
@@ -116,6 +117,23 @@ extern "C" {
     return 1;
   }
 
+    bool file_t_test(){
+    FILE *fp; //pointer to a new file
+    printf("create new torture file\n");
+    fp = fopen("/mnt/sd0/AUDIO/torture.waw", "wb");
+    if (fp == NULL){
+      return 0;
+    }
+    int i = 0;
+    while(i <= 48000){
+    fprintf(fp, "%i\n", i);
+      i++;
+    }
+    fclose(fp);
+    printf("finished, exiting...\n\n");
+    return 1;
+  }
+
   //this only tests the generation of the waw file with the header
   bool waw_testbench(){
     audioData test;
@@ -128,13 +146,13 @@ extern "C" {
 
   //this only tests the sine oscillator
   bool sine_oscillator_test(){
-    float sample;
+    int sample;
     float time = 0;
     audioData temp;
     temp.amplitude = 2;
     temp.angle = 0;
     temp.frequency = 1;
-    temp.bitDepth = 8;
+    temp.bitDepth = 16;
     temp.sampleRate = 50;
     temp.duration = 1;
     float dur = temp.duration;
@@ -142,36 +160,31 @@ extern "C" {
     float tau = 1/SR;
     printf("Starting sine wave generation of a wave with the following properties\n");
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
-
     while(time <= dur){
       sample = sine_oscillator(temp, time);
-      printf("Sample: %f, Time: %f\n", sample, time);
+      printf("Sample: %i, Time: %f\n", sample, time);
       time += tau;
     }
     return 1;
   }
 
   bool complete_waw_test(){
-    float sample;
-    float time = 0;
     audioData temp;
     temp.amplitude = 2;
     temp.angle = 0;
-    temp.frequency = 1;
-    temp.bitDepth = 8;
-    temp.sampleRate = 50;
-    temp.duration = 1;
+    temp.frequency = 100;
+    temp.bitDepth = 16;
+    temp.sampleRate = 48000;
+    temp.duration = 3;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
     printf("Starting sine wave generation of a wave with the following properties\n");
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
-    printf("\nstarting header generation...\n");
-    if(!generate_waw_file(temp)){
-      printf("test failed returning to uart\n");
+    if(!wawgen(temp)){
       return 0;
     }
-    printf("waw generation sucsessful, exiting..\n\n");
+    printf("file generation completed, exiting...\n\n");
     return 1;
   }
 
@@ -239,7 +252,7 @@ extern "C" {
           //testing the file creation...
           if(stringCompare(file_buf, buffer_aux)){
             printf("generating file test...\n");
-            if(!file_config()){
+            if(!file_t_test()){
               printf("file generation failed, exiting...\n\n");
               return 0;
             }
@@ -269,7 +282,7 @@ extern "C" {
 
           if (stringCompare(fulltest_buf, buffer_aux)){
             if(!complete_waw_test()){
-
+              return 0;
             }
           }
 

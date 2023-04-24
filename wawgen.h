@@ -19,18 +19,18 @@ struct audioData {
 
 struct header {
     char riff[4];
-    uint32_t fileSize;
+    int32_t fileSize;
     char wave[4];
     char fmt[4];
-    uint32_t fmtLen;
-    uint16_t format;
-    uint16_t chanCnt;
-    uint32_t sampleRate;
-    uint32_t byteRate;
-    uint16_t blkAlign;
-    uint16_t bitPerSample;
+    int32_t fmtLen;
+    int16_t format;
+    int16_t chanCnt;
+    int32_t sampleRate;
+    int32_t byteRate;
+    int16_t blkAlign;
+    int16_t bitPerSample;
     char data[4];
-    uint32_t data_size;
+    int32_t data_size;
 };
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
@@ -47,6 +47,8 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     wawHdr.riff[2] = 'F';
     wawHdr.riff[3] = 'F';
 
+    wawHdr.fileSize = 16;
+
     wawHdr.wave[0] = 'W';
     wawHdr.wave[1] = 'A';
     wawHdr.wave[2] = 'V';
@@ -57,36 +59,35 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     wawHdr.fmt[2] = 't';
     wawHdr.fmt[3] = ' ';
 
-    wawHdr.wave[0] = 'W';
-    wawHdr.wave[1] = 'A';
-    wawHdr.wave[2] = 'V';
-    wawHdr.wave[3] = 'E';
+    wawHdr.fmtLen = 16;
+    wawHdr.format = 1;
+    wawHdr.chanCnt = 2;
+    wawHdr.sampleRate = payload.sampleRate;
+    wawHdr.byteRate = (payload.sampleRate*payload.bitDepth*wawHdr.chanCnt)/8;
+    wawHdr.blkAlign = (payload.bitDepth*wawHdr.chanCnt)/8;
+    wawHdr.bitPerSample = 16;
 
     wawHdr.data[0] = 'd';
     wawHdr.data[1] = 'a';
     wawHdr.data[2] = 't';
     wawHdr.data[3] = 'a';
 
-    wawHdr.fileSize = 16;
-    wawHdr.fmtLen = 1;
-    wawHdr.chanCnt = 2;
-    wawHdr.sampleRate = payload.sampleRate;
-    wawHdr.byteRate = (payload.sampleRate*payload.bitDepth*wawHdr.chanCnt)/8;
-    wawHdr.blkAlign = (payload.bitDepth*wawHdr.chanCnt)/8;
-    wawHdr.bitPerSample = 16;
-    wawHdr.data_size = (payload.sampleRate*wawHdr.chanCnt*wawHdr.bitPerSample)/8 *payload.duration;
+    wawHdr.data_size = (payload.sampleRate*wawHdr.chanCnt*wawHdr.bitPerSample)/8 * payload.duration;
     
     //writing of the waw file
     fwrite(&wawHdr, sizeof(wawHdr),1,fp);
     fclose(fp);
 
-    //check if file exists
+
+    //check if file exists CURRENTLY BROKEN
+    /*
     const char *file = "/mnt/sd0/AUDIO/sine.waw";
     if(access(file, F_OK) != 0){
         printf("file creation failed..\n");
         return 0;
     }
     printf("file creation complete, file exists\n");
+    */
     return 1;
 }
 /* not currently needed
@@ -96,11 +97,11 @@ bool read_audioConfig(){ //extracts the data from prexisting audio config
 }
 */
 
-float sine_oscillator(audioData payload, float time){ //simple sine oscillator that can be called 
+int16_t sine_oscillator(audioData payload, float time){ //simple sine oscillator that can be called 
     float phase = 2*M_PI*payload.frequency*time;
     float sample = payload.amplitude*sin(phase);
-    printf("sinetest, phase: %f", phase);
-    return sample;
+    int16_t iSample = sample * (pow(2, payload.bitDepth - 1) - 1); 
+    return iSample;
 }
 
 bool wawgen(audioData payload){ //responsible for writing the waw file
@@ -108,18 +109,22 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
         printf("waw generation failed.. \n");
         return 0;
     }
+    printf("generated header file..\n\n Starting sine generation..\n\n");
+
     //open file
     FILE *fp;
     fp = fopen("/mnt/sd0/AUDIO/sine.waw", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
-    float tau = 1/payload.sampleRate;
-    int duration = payload.duration;
-    while (time <= duration){
-        float sample = sine_oscillator(payload, time);
-        fprintf(fp, "%f", sample);
-        printf("%f", sample);
+    float DUR = payload.duration;
+    float SR = payload.sampleRate;
+    float tau = 1/SR;
+
+    while (time <= DUR){
+        int16_t sample = sine_oscillator(payload, time);
+        fprintf(fp, "%i", sample);
+        fprintf(fp, "%i", sample); //caused by channel cnt 2
         time += tau;
     }
     fclose(fp);
