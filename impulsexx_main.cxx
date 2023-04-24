@@ -149,11 +149,11 @@ extern "C" {
     int sample;
     float time = 0;
     audioData temp;
-    temp.amplitude = 2;
+    temp.amplitude = 0.5;
     temp.angle = 0;
     temp.frequency = 1;
     temp.bitDepth = 16;
-    temp.sampleRate = 50;
+    temp.sampleRate = 20;
     temp.duration = 1;
     float dur = temp.duration;
     float SR = temp.sampleRate;
@@ -170,7 +170,7 @@ extern "C" {
 
   bool complete_waw_test(){
     audioData temp;
-    temp.amplitude = 1;
+    temp.amplitude = 0.4;
     temp.angle = 0;
     temp.frequency = 440;
     temp.bitDepth = 16;
