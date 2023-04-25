@@ -120,24 +120,13 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     float DUR = payload.duration;
     float SR = payload.sampleRate;
     float tau = 1/SR;
-    /* doin a lil experimente
+
     while (time <= DUR){
         int16_t sample = sine_oscillator(payload, time);
         fprintf(fp, "%i", sample);
         //fprintf(fp, "%i", sample); //caused by channel cnt 2
         time += tau;
     }
-    */
-//testspace////////////////////////////////////////
-    int totalsamp = payload.duration*payload.sampleRate;
-    int16_t bigass [totalsamp];
-    int samp = 0;
-    while (samp <= totalsamp){
-        bigass[samp] = sine_oscillator(payload, time);
-        samp += 1;
-    }
-    fwrite(&bigass, sizeof(bigass),1,fp);
-//testspace////////////////////////////////////////
     fclose(fp);
     return 1;
 }
