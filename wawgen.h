@@ -13,69 +13,67 @@
 #include <cmath>
 
 struct audioData {
-    int sampleRate, bitDepth, duration;
-    float frequency, amplitude, angle;
+    int sampleRate, bitPerSample;
+    float frequency, amplitude, angle, duration;
 };
 
 struct header {
     char riff[4];
-    int32_t fileSize;
+    int32_t riffLen;
     char wave[4];
     char fmt[4];
-    int32_t fmtLen;
-    int16_t format;
+    int fmtLen;
+    int16_t audioFormat;
     int16_t chanCnt;
     int32_t sampleRate;
     int32_t byteRate;
-    int16_t blkAlign;
+    int16_t blockAlign;
     int16_t bitPerSample;
     char data[4];
-    int32_t data_size;
+    int32_t dataSize;
 };
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
     fp = fopen("/mnt/sd0/AUDIO/sine.wav", "wb"); //open in a RW binary mode
 
-    header wawHdr; //create instance of waw header 
-
+    header wavHdr; //create instance of waw header
     //assigning the standard values to the header
 
     //the strings have to be done this way...
-    wawHdr.riff[0] = 'R';
-    wawHdr.riff[1] = 'I';
-    wawHdr.riff[2] = 'F';
-    wawHdr.riff[3] = 'F';
+    wavHdr.riff[0] = 'R';
+    wavHdr.riff[1] = 'I';
+    wavHdr.riff[2] = 'F';
+    wavHdr.riff[3] = 'F';
 
-    wawHdr.fileSize = 16;
+    wavHdr.riffLen = 16; //((payload.sampleRate*wavHdr.chanCnt*wavHdr.bitPerSample)/8 * payload.duration)-8;
 
-    wawHdr.wave[0] = 'W';
-    wawHdr.wave[1] = 'A';
-    wawHdr.wave[2] = 'V';
-    wawHdr.wave[3] = 'E';
+    wavHdr.wave[0] = 'W';
+    wavHdr.wave[1] = 'A';
+    wavHdr.wave[2] = 'V';
+    wavHdr.wave[3] = 'E';
 
-    wawHdr.fmt[0] = 'f';
-    wawHdr.fmt[1] = 'm';
-    wawHdr.fmt[2] = 't';
-    wawHdr.fmt[3] = ' ';
+    wavHdr.fmt[0] = 'f';
+    wavHdr.fmt[1] = 'm';
+    wavHdr.fmt[2] = 't';
+    wavHdr.fmt[3] = ' ';
 
-    wawHdr.fmtLen = 16;
-    wawHdr.format = 1;
-    wawHdr.chanCnt = 2;
-    wawHdr.sampleRate = payload.sampleRate;
-    wawHdr.byteRate = (payload.sampleRate*payload.bitDepth*wawHdr.chanCnt)/8;
-    wawHdr.blkAlign = (payload.bitDepth*wawHdr.chanCnt)/8;
-    wawHdr.bitPerSample = 16;
+    wavHdr.fmtLen = 16;
+    wavHdr.audioFormat = 1;
+    wavHdr.chanCnt = 1;
+    wavHdr.sampleRate = payload.sampleRate;
+    wavHdr.byteRate = wavHdr.chanCnt * payload.sampleRate*(payload.bitPerSample/8);
+    wavHdr.blockAlign = wavHdr.chanCnt * payload.bitPerSample/8;
+    wavHdr.bitPerSample = payload.bitPerSample;
 
-    wawHdr.data[0] = 'd';
-    wawHdr.data[1] = 'a';
-    wawHdr.data[2] = 't';
-    wawHdr.data[3] = 'a';
-
-    wawHdr.data_size = (payload.sampleRate*wawHdr.chanCnt*wawHdr.bitPerSample)/8 * payload.duration;
+    wavHdr.data[0] = 'd';
+    wavHdr.data[1] = 'a';
+    wavHdr.data[2] = 't';
+    wavHdr.data[3] = 'a';
+    wavHdr.dataSize = (payload.sampleRate * wavHdr.chanCnt * wavHdr.bitPerSample)/8;// * payload.duration;
     
     //writing of the waw file
-    fwrite(&wawHdr, sizeof(wawHdr),1,fp);
+    fwrite(&wavHdr, sizeof(wavHdr),1,fp);
     fclose(fp);
 
 
@@ -100,7 +98,7 @@ bool read_audioConfig(){ //extracts the data from prexisting audio config
 int16_t sine_oscillator(audioData payload, float time){ //simple sine oscillator that can be called 
     float phase = 2*M_PI*payload.frequency*time;
     float sample = payload.amplitude*sin(phase);
-    int16_t iSample = sample * (pow(2, payload.bitDepth - 1) - 1); //convert to 16 bit
+    int16_t iSample = sample * (pow(2, payload.bitPerSample - 1) - 1); //convert to 16 bit
     return iSample;
 }
 
@@ -120,11 +118,13 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     float DUR = payload.duration;
     float SR = payload.sampleRate;
     float tau = 1/SR;
+    //int p = 0;
 
     while (time <= DUR){
         int16_t sample = sine_oscillator(payload, time);
-        fprintf(fp, "%i", sample);
-        //fprintf(fp, "%i", sample); //caused by channel cnt 2
+        //fprintf(fp, "%i", 10000+p);
+        //p++;
+        fprintf(fp, "%i", sample); //caused by channel cnt 2
         time += tau;
     }
     fclose(fp);

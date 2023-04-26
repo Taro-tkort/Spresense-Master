@@ -26,7 +26,6 @@
 #include "audio_player_tool.h"
 #include "wawgen.h"
 
-
 //audio
 #include <audio/audio_high_level_api.h>
 #include <audio/audio_player_api.h>
@@ -146,15 +145,17 @@ extern "C" {
 
   //this only tests the sine oscillator
   bool sine_oscillator_test(){
+    FILE *fp;
+    fp = fopen("/mnt/sd0/AUDIO/ocil", "wb");
     int sample;
     float time = 0;
     audioData temp;
-    temp.amplitude = 0.5;
+    temp.amplitude = 0.4;
     temp.angle = 0;
-    temp.frequency = 1;
-    temp.bitDepth = 16;
-    temp.sampleRate = 20;
-    temp.duration = 1;
+    temp.frequency = 1000;
+    temp.bitPerSample = 16;
+    temp.sampleRate = 44100;
+    temp.duration = 2;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
@@ -162,20 +163,25 @@ extern "C" {
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
     while(time <= dur){
       sample = sine_oscillator(temp, time);
-      printf("Sample: %i, Time: %f\n", sample, time);
+      fwrite(&sample, sizeof(sample), 1, fp);
+      //fprintf(fp, "%i %f\n", sample, time);
+      //printf("Sample: %i, Time: %f\n", sample, time);
       time += tau;
     }
+    printf("done, closing..\n");
+    fclose(fp);
     return 1;
   }
+
 
   bool complete_waw_test(){
     audioData temp;
     temp.amplitude = 0.4;
     temp.angle = 0;
-    temp.frequency = 440;
-    temp.bitDepth = 16;
-    temp.sampleRate = 48000;
-    temp.duration = 3;
+    temp.frequency = 1000;
+    temp.bitPerSample = 16;
+    temp.sampleRate = 44100;
+    temp.duration = 2;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
