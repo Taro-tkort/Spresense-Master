@@ -122,9 +122,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
 
     while (time <= DUR){
         int16_t sample = sine_oscillator(payload, time);
-        //fprintf(fp, "%i", 10000+p);
-        //p++;
-        fprintf(fp, "%i", sample); //caused by channel cnt 2
+        fwrite(&sample, sizeof(sample), 1, fp);
         time += tau;
     }
     fclose(fp);
