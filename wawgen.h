@@ -14,7 +14,7 @@
 
 struct audioData {
     int sampleRate, bitPerSample;
-    float frequency, amplitude, angle, duration;
+    float frequency, frequencyStop, amplitude, angle, duration;
 };
 
 struct header {
@@ -102,6 +102,17 @@ int16_t sine_oscillator(audioData payload, float time){ //simple sine oscillator
     return iSample;
 }
 
+int16_t exp_sine_oscillator(audioData payload, float time){ //exponential sine oscillator based on Novak2015
+    float f1 = payload.frequency;
+    float f2 = payload.frequencyStop;
+    float T = payload.duration;
+    float stg1 = (2*M_PI*f1*T)/log(f2/f2);
+    float stg2 = exp((time/T)*log(f2/f2));
+    float sample = payload.amplitude*sin(stg1*stg2);
+    int16_t iSample = sample * (pow(2, payload.bitPerSample - 1) - 1);
+    return iSample;
+}
+
 bool wawgen(audioData payload){ //responsible for writing the waw file
     if(!generate_waw_file(payload)){
         printf("waw generation failed.. \n");
@@ -111,7 +122,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
 
     //open file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "ab"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/exp_sine.wav", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
@@ -121,7 +132,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     //int p = 0;
 
     while (time <= DUR){
-        int16_t sample = sine_oscillator(payload, time);
+        int16_t sample = exp_sine_oscillator(payload, time);
         fwrite(&sample, sizeof(sample), 1, fp);
         time += tau;
     }

@@ -153,18 +153,19 @@ extern "C" {
     temp.amplitude = 0.4;
     temp.angle = 0;
     temp.frequency = 1000;
+    temp.frequencyStop = 1500;
     temp.bitPerSample = 16;
     temp.sampleRate = 44100;
-    temp.duration = 2;
+    temp.duration = 1;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
     printf("Starting sine wave generation of a wave with the following properties\n");
     printf("Ampliute: %f, Freq: %f, duration: %f, SR: %i Tau: %f\n", temp.amplitude, temp.frequency, dur, temp.sampleRate, tau);
     while(time <= dur){
-      sample = sine_oscillator(temp, time);
-      fwrite(&sample, sizeof(sample), 1, fp);
-      //fprintf(fp, "%i %f\n", sample, time);
+      sample = exp_sine_oscillator(temp, time);
+      //fwrite(&sample, sizeof(sample), 1, fp);
+      fprintf(fp, "%i %f\n", sample, time);
       //printf("Sample: %i, Time: %f\n", sample, time);
       time += tau;
     }
@@ -178,10 +179,11 @@ extern "C" {
     audioData temp;
     temp.amplitude = 0.4;
     temp.angle = 0;
-    temp.frequency = 1000;
+    temp.frequency = 500;
+    temp.frequencyStop = 1500;
     temp.bitPerSample = 16;
     temp.sampleRate = 44100;
-    temp.duration = 2;
+    temp.duration = 1;
     float dur = temp.duration;
     float SR = temp.sampleRate;
     float tau = 1/SR;
