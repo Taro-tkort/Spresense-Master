@@ -106,8 +106,8 @@ int16_t exp_sine_oscillator(audioData payload, float time){ //exponential sine o
     float f1 = payload.frequency;
     float f2 = payload.frequencyStop;
     float T = payload.duration;
-    float stg1 = (2*M_PI*f1*T)/log(f2/f2);
-    float stg2 = exp((time/T)*log(f2/f2));
+    float stg1 = (2*M_PI*f1*T)/log(f2/f1);
+    float stg2 = exp((time/T)*log(f2/f1));
     float sample = payload.amplitude*sin(stg1*stg2);
     int16_t iSample = sample * (pow(2, payload.bitPerSample - 1) - 1);
     return iSample;

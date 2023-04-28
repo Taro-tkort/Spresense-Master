@@ -174,6 +174,19 @@ extern "C" {
     return 1;
   }
 
+  bool math_test(){
+    float time = 0.5;
+    float f1 = 500;
+    float f2 = 1000;
+    float T = 1;
+    float stg1 = (2*M_PI*f1*T)/log(f2/f1);
+    float stg2 = exp((time/T)*log(f2/f2));
+    printf("stage 1: %f, stage 2: %f\n", stg1, stg2);
+    float sample = sin(stg1*stg2);
+    printf("produces sample: %f\n", sample);
+    return 1;
+  }
+
 
   bool complete_waw_test(){
     audioData temp;
@@ -211,6 +224,7 @@ extern "C" {
     char test_buf[4] = {'t','e','s','t'};
     char tsin_buf[4] = {'t','s','i','n'};
     char twaw_buf[4] = {'t','w','a','w'};
+    char tmath_buf[4] = {'m','a','t','h'};
     char fulltest_buf [5] = {'b' ,'e' ,'n' ,'c' ,'h'};
     int ret;
     int i = 0;
@@ -255,6 +269,13 @@ extern "C" {
           //just a test of the uart
           if(stringCompare(test_buf, buffer_aux)){
             printf("well.. the uart works\n\n");
+          }
+
+          if(stringCompare(tmath_buf, buffer_aux)){
+            printf("testing the exp sine thingy\n\n");
+            if(!math_test()){
+              return 0;
+            }
           }
 
           //testing the file creation...
