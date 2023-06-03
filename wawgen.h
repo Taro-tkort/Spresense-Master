@@ -35,7 +35,7 @@ struct header {
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "wb"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sineRiffWonky.wav", "wb"); //open in a RW binary mode
 
     header wavHdr; //create instance of waw header
     //assigning the standard values to the header
@@ -45,8 +45,6 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     wavHdr.riff[1] = 'I';
     wavHdr.riff[2] = 'F';
     wavHdr.riff[3] = 'F';
-
-    wavHdr.riffLen = 16; //((payload.sampleRate*wavHdr.chanCnt*wavHdr.bitPerSample)/8 * payload.duration)-8;
 
     wavHdr.wave[0] = 'W';
     wavHdr.wave[1] = 'A';
@@ -70,8 +68,16 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     wavHdr.data[1] = 'a';
     wavHdr.data[2] = 't';
     wavHdr.data[3] = 'a';
-    wavHdr.dataSize = (payload.sampleRate * wavHdr.chanCnt * wavHdr.bitPerSample)/8;// * payload.duration;
-    
+
+    wavHdr.dataSize = 0;
+    wavHdr.riffLen = 0;
+
+
+    //filling size bytes
+    wavHdr.dataSize = (payload.sampleRate * wavHdr.chanCnt * wavHdr.bitPerSample)/8 * payload.duration;
+    wavHdr.riffLen = wavHdr.dataSize + 44 - 8;
+    printf("dataSize is %ld and file size should be %ld\n", wavHdr.dataSize, wavHdr.riffLen);
+
     //writing of the waw file
     fwrite(&wavHdr, sizeof(wavHdr),1,fp);
     fclose(fp);
@@ -122,7 +128,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
 
     //open file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/exp_sine.wav", "ab"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sineRiffWonky.wav", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
@@ -132,10 +138,12 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     //int p = 0;
 
     while (time <= DUR){
-        int16_t sample = exp_sine_oscillator(payload, time);
+        int16_t sample = sine_oscillator(payload, time);
         fwrite(&sample, sizeof(sample), 1, fp);
         time += tau;
     }
+
+    //closing protocol
     fclose(fp);
     return 1;
 }
