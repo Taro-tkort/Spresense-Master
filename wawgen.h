@@ -35,7 +35,7 @@ struct header {
 
 bool generate_waw_file(audioData payload){ //generates an empty waw file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sineRiffWonky.wav", "wb"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "wb"); //open in a RW binary mode
 
     header wavHdr; //create instance of waw header
     //assigning the standard values to the header
@@ -94,7 +94,7 @@ bool generate_waw_file(audioData payload){ //generates an empty waw file
     */
     return 1;
 }
-/* not currently needed
+/* not currently needed as file read doses not exist
 bool read_audioConfig(){ //extracts the data from prexisting audio config
     This function is intended to read a config file and extrac payload data from this file
     this will then be used to genereate the needed number of .waw files
@@ -128,7 +128,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
 
     //open file
     FILE *fp;
-    fp = fopen("/mnt/sd0/AUDIO/sineRiffWonky.wav", "ab"); //open in a RW binary mode
+    fp = fopen("/mnt/sd0/AUDIO/sine.wav", "ab"); //open in a RW binary mode
 
     //initial values for the sine oscillator
     float time = 0;
@@ -137,6 +137,7 @@ bool wawgen(audioData payload){ //responsible for writing the waw file
     float tau = 1/SR;
     //int p = 0;
 
+    //generate and write the samples
     while (time <= DUR){
         int16_t sample = sine_oscillator(payload, time);
         fwrite(&sample, sizeof(sample), 1, fp);

@@ -44,34 +44,18 @@
 #include <nuttx/compiler.h>
 
 
-
-//defines
-
-//***************************************************************************
-// Public Functions
-//***************************************************************************
-
-/****************************************************************************
- * Name: helloxx_main
- ****************************************************************************/
-
-/////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////
-
-
-
 // The Native C part
 extern "C" {
   //function prototypes
   bool uart_comms();
 
   int main(int argc, FAR char *argv[]){
-    printf("Fucks sake, It works!!\n");
+    printf("Uart Initialized!!\n");
 
     if(!uart_comms()){
       printf("\nuart init failed or uart was exited...\n quitting program\n");
       return 0;
-    } //END OF MAIN
+    }
     return 1;
   }
 
@@ -116,26 +100,6 @@ extern "C" {
     return 1;
   }
 
-    bool file_t_test(){
-    FILE *fp; //pointer to a new file
-    printf("create new torture file\n");
-    fp = fopen("/mnt/sd0/AUDIO/torture.waw", "wb");
-    if (fp == NULL){
-      return 0;
-    }
-    int i = 0;
-    while(i <= 48000){
-    fprintf(fp, "%i\n", i);
-      i++;
-    }
-    fseek(fp, 0, SEEK_END);
-    printf("The end of the file is %ld \n", ftell(fp));
-
-    fclose(fp);
-    printf("finished, exiting...\n\n");
-    return 1;
-  }
-
   //this only tests the generation of the waw file with the header
   bool waw_testbench(){
     audioData test;
@@ -177,6 +141,7 @@ extern "C" {
     return 1;
   }
 
+  //testbench for math 
   bool math_test(){
     float time = 0.5;
     float f1 = 500;
@@ -192,7 +157,7 @@ extern "C" {
   }
 
 
-  bool complete_waw_test(){
+  bool complete_waw_generation(){
     audioData temp;
     temp.amplitude = 0.4;
     temp.angle = 0;
@@ -212,52 +177,6 @@ extern "C" {
     printf("file generation completed, returning to uart...\n\n");
     return 1;
   }
-
-  //exp test (calculate first)
-  bool exp_test_func(){
-    //init
-    audioData temp;
-    temp.amplitude = 0.4;
-    temp.angle = 0;
-    temp.frequency = 500;
-    temp.frequencyStop = 1500;
-    temp.bitPerSample = 16;
-    temp.sampleRate = 48000;
-    temp.duration = 1;
-    float dur = temp.duration;
-    float SR = temp.sampleRate;
-    float tau = 1/SR;
-    //calc
-    printf("tetsing calculations first and then printing\n");
-    if(!wawgen_alt1(temp)){
-      return 0;
-    }
-    printf("file generation completed, returning to uart...\n\n");
-    return 1;
-  }
-
-    //exp test (calculate first)
-  bool exp_tets_func2(){
-    //init
-    audioData temp;
-    temp.amplitude = 0.4;
-    temp.angle = 0;
-    temp.frequency = 500;
-    temp.frequencyStop = 1500;
-    temp.bitPerSample = 16;
-    temp.sampleRate = 48000;
-    temp.duration = 1;
-    float dur = temp.duration;
-    float SR = temp.sampleRate;
-    float tau = 1/SR;
-    //calc
-    printf("tetsing calculations first and then printing\n");
-    if(!wawgen_alt2(temp)){
-      return 0;
-    }
-    printf("file generation completed, returning to uart...\n\n");
-    return 1;
-  }
   
 
   //UART communications //
@@ -265,20 +184,19 @@ extern "C" {
     //test code for uart
     printf("initializing uart\n");
     int fd;
+    //buffers
     char buffer;
     char buffer_aux[256] = {};
     char quit_buf[4] = {'q','u','i','t'};
     char play_buf[4] = {'p','l','a','y'};
     char file_buf[4] = {'f','i','l','e'};
     char help_buf[4] = {'h','e','l','p'};
+    char gen_buf[4] = {'g','e','n','r'}; 
     //test buffers
     char test_buf[4] = {'t','e','s','t'};
     char tsin_buf[4] = {'t','s','i','n'};
     char twaw_buf[4] = {'t','w','a','w'};
     char tmath_buf[4] = {'m','a','t','h'};
-    char fulltest_buf [5] = {'b' ,'e' ,'n' ,'c' ,'h'};
-    char exp_buf [4] = {'e' ,'x' ,'p', '1'};
-    char exp_buf2 [4] = {'e', 'x', 'p', '2'};
     int ret;
     int i = 0;
 
@@ -304,6 +222,7 @@ extern "C" {
           buffer_aux[i-1] = NULL;
           i--;
         }
+
         //user presses enter
         if (buffer == '\r') {//If the character if a return the data will be send
           ret = write(fd, buffer_aux, sizeof(char) * i);//You can send in this case up to 256 character
@@ -311,24 +230,16 @@ extern "C" {
 
           //help command
           if(stringCompare(help_buf, buffer_aux)){
-            printf("\nWelcome to the shitty impulse response program\n");
+            printf("\nWelcome to the Spresense\n");
             printf("Here are some useful commands\n");
             printf("> help - yeild this very window \n");
-            printf("> play - launch the audio player example [curr broken :,( ]) \n");
+            printf("> play - launch the audio player example) \n");
             printf("> file - start the file generator \n");
+
             printf("> quit - exit the program\n");
             printf("\ntype a command to proceed\n");
           }
 
-          //EXPERIMENTAL CALCULATION SHIT 1
-          if(stringCompare(exp_buf,buffer_aux)){
-            exp_test_func();
-          }
-
-          //EXPERIMENTAL CALCULATION SHIT 2
-          if(stringCompare(exp_buf2,buffer_aux)){
-            exp_tets_func2();
-          }
 
           //just a test of the uart
           if(stringCompare(test_buf, buffer_aux)){
@@ -336,7 +247,7 @@ extern "C" {
           }
 
           if(stringCompare(tmath_buf, buffer_aux)){
-            printf("testing the exp sine thingy\n\n");
+            printf("testing the exp sine calculations\n\n");
             if(!math_test()){
               return 0;
             }
@@ -345,7 +256,7 @@ extern "C" {
           //testing the file creation...
           if(stringCompare(file_buf, buffer_aux)){
             printf("generating file test...\n");
-            if(!file_t_test()){
+            if(!file_config()){
               printf("file generation failed, exiting...\n\n");
               return 0;
             }
@@ -373,8 +284,8 @@ extern "C" {
             return false;
           }
 
-          if (stringCompare(fulltest_buf, buffer_aux)){
-            if(!complete_waw_test()){
+          if (stringCompare(gen_buf, buffer_aux)){
+            if(!complete_waw_generation()){
               return 0;
             }
           }
